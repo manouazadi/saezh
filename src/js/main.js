@@ -49,163 +49,128 @@ function initOnce () {
       })
 
       // Initial state
-      gsap.set(items, { y: 30, autoAlpha: 0, scale: 0.97, filter: 'blur(2px)' })
+      gsap.set(items, { y: ANIM.initialY, autoAlpha: 0, scale: ANIM.initialScale, filter: 'blur(2px)' })
 
       // Cinematic micro-overshoot + blur/opacity tail
       rows.forEach((row, idx) => {
-        const tl = gsap.timeline({ delay: idx * 0.12 })
-        tl.to(row.els, { y: 0, scale: 1.012, duration: 0.7, ease: 'cubic-bezier(0.25, 1, 0.5, 1)', stagger: 0.05 }, 0)
-        tl.to(row.els, { scale: 1, duration: 0.25, ease: 'power1.out', stagger: 0.05 }, 0.62)
-        tl.to(row.els, { filter: 'blur(0px)', autoAlpha: 1, duration: 1.1, ease: 'power2.out', stagger: 0.05 }, 0.1)
+        const tl = gsap.timeline({ delay: idx * ANIM.rowDelay })
+        tl.to(row.els, { y: 0, scale: ANIM.overshoot, duration: ANIM.primaryDur, ease: EASE.outQuart, stagger: ANIM.itemStagger }, 0)
+        tl.to(row.els, { scale: 1, duration: ANIM.settleDur, ease: EASE.settle, stagger: ANIM.itemStagger }, ANIM.settleOffset)
+        tl.to(row.els, { filter: 'blur(0px)', autoAlpha: 1, duration: ANIM.tailDur, ease: EASE.tail, stagger: ANIM.itemStagger }, ANIM.tailOffset)
       })
     })
   }
 
-  // Trigger entrance once per grid on initial load
-  Array.from(grids).forEach(animateGridEntrance)
-
-  // THEME: light, dark, golden hour, blue hour
-  const THEME_KEYS = ['light', 'dark', 'golden', 'blue']
-  const THEME_CLASSES = THEME_KEYS.map(k => `theme-${k}`)
-
-  function minutesSinceMidnight (d) {
-    return d.getHours() * 60 + d.getMinutes()
+  // Trigger entrance once per grid on demand (unified call)
+  function triggerEntranceAllGrids () {
+    Array.from(grids).forEach(animateGridEntrance)
   }
+  triggerEntranceAllGrids()
 
-  // Heuristic fallback if precise calc unavailable
-  function detectThemeHeuristic (now = new Date()) {
-    const m = minutesSinceMidnight(now)
-    const blueMorning = m >= 5 * 60 + 15 && m < 6 * 60
-    const goldenMorning = m >= 6 * 60 && m < 7 * 60 + 30
-    const goldenEvening = m >= 17 * 60 + 30 && m < 19 * 60
-    const blueEvening = m >= 19 * 60 && m < 19 * 60 + 45
-    if (blueMorning || blueEvening) return 'blue'
-    if (goldenMorning || goldenEvening) return 'golden'
-    if (m >= 20 * 60 || m < 6 * 60) return 'dark'
-    return 'light'
-  }
+  // Expose for debugging / dynamic injections
+  window.triggerEntranceAllGrids = triggerEntranceAllGrids
 
-  // Precise theme using SunCalc + geolocation
-  let GEO_POS = null
-  function detectThemePrecise (now = new Date()) {
-    try {
-      if (!GEO_POS || !window.SunCalc || typeof SunCalc.getTimes !== 'function')
-        return detectThemeHeuristic(now)
-      const { latitude, longitude } = GEO_POS
-      const times = SunCalc.getTimes(now, latitude, longitude)
-      const n = now.getTime()
-      const t = key =>
-        times && times[key] instanceof Date ? times[key].getTime() : NaN
-      const between = (a, b) => !isNaN(a) && !isNaN(b) && n >= a && n < b
 
-      // Blue hour around civil twilight
-      const blueMorning = between(t('dawn'), t('sunriseEnd'))
-      const blueEvening = between(t('sunsetStart'), t('dusk'))
+  // Constants
+  const ANIM = { rowDelay: 0.12, itemStagger: 0.05, initialY: 30, initialScale: 0.97, overshoot: 1.012, primaryDur: 0.7, settleDur: 0.25, tailDur: 1.1, tailOffset: 0.1, settleOffset: 0.62 }
+  const EASE = { outQuart: 'cubic-bezier(0.25, 1, 0.5, 1)', tail: 'power2.out', settle: 'power1.out' }
+  const THEME_RECHECK_MS = 60000
 
-      // Golden hour windows
-      const goldenMorning = between(t('sunriseEnd'), t('goldenHourEnd'))
-      const goldenEvening = between(t('goldenHour'), t('sunsetStart'))
-
+  // Theme module
+  const Theme = {
+    KEYS: ['light', 'dark', 'golden', 'blue'],
+    CLASSES: ['theme-light', 'theme-dark', 'theme-golden', 'theme-blue'],
+    geo: null,
+    minutesSinceMidnight (d) { return d.getHours() * 60 + d.getMinutes() },
+    detectHeuristic (now = new Date()) {
+      const m = this.minutesSinceMidnight(now)
+      const blueMorning = m >= 5 * 60 + 15 && m < 6 * 60
+      const goldenMorning = m >= 6 * 60 && m < 7 * 60 + 30
+      const goldenEvening = m >= 17 * 60 + 30 && m < 19 * 60
+      const blueEvening = m >= 19 * 60 && m < 19 * 60 + 45
       if (blueMorning || blueEvening) return 'blue'
       if (goldenMorning || goldenEvening) return 'golden'
-
-      // Day vs night
-      const isDay = between(t('sunrise'), t('sunset'))
-      return isDay ? 'light' : 'dark'
-    } catch (_) {
-      return detectThemeHeuristic(now)
-    }
-  }
-
-  // Wrapper
-  function detectTimeTheme (now = new Date()) {
-    return detectThemePrecise(now)
-  }
-
-  function currentTheme () {
-    for (const k of THEME_KEYS)
-      if (document.body.classList.contains(`theme-${k}`)) return k
-    return null
-  }
-
-  function updateToggleUI (theme) {
-    const btn = document.getElementById('theme-toggle')
-    if (!btn) return
-    const sun = btn.querySelector('.icon-sun')
-    const moon = btn.querySelector('.icon-moon')
-    const gh = btn.querySelector('.gh-badge')
-    const bh = btn.querySelector('.bh-badge')
-
-    const isLightish = theme === 'light' || theme === 'golden'
-    if (sun) sun.style.display = isLightish ? 'block' : 'none'
-    if (moon) moon.style.display = isLightish ? 'none' : 'block'
-
-    if (gh) gh.classList.toggle('hidden', theme !== 'golden')
-    if (bh) bh.classList.toggle('hidden', theme !== 'blue')
-
-    const title =
-      theme === 'golden'
-        ? 'Golden hour theme'
-        : theme === 'blue'
-        ? 'Blue hour theme'
-        : isLightish
-        ? 'Light theme'
-        : 'Dark theme'
-    btn.setAttribute('title', title)
-    btn.setAttribute('aria-label', title)
-  }
-
-  function setTheme (theme) {
-    document.body.classList.remove(...THEME_CLASSES)
-    document.body.classList.add(`theme-${theme}`)
-    updateToggleUI(theme)
-    // Optionally also update meta theme-color for mobile UI
-    const meta = document.querySelector('meta[name="theme-color"]')
-    if (meta) {
-      const color =
-        theme === 'dark'
-          ? '#0b0b0b'
-          : theme === 'blue'
-          ? '#0f172a'
-          : theme === 'golden'
-          ? '#fff7ed'
-          : '#fafaf9'
-      meta.setAttribute('content', color)
+      if (m >= 20 * 60 || m < 6 * 60) return 'dark'
+      return 'light'
+    },
+    detectPrecise (now = new Date()) {
+      try {
+        if (!this.geo || !window.SunCalc || typeof SunCalc.getTimes !== 'function')
+          return this.detectHeuristic(now)
+        const { latitude, longitude } = this.geo
+        const times = SunCalc.getTimes(now, latitude, longitude)
+        const n = now.getTime()
+        const t = key => times && times[key] instanceof Date ? times[key].getTime() : NaN
+        const between = (a, b) => !isNaN(a) && !isNaN(b) && n >= a && n < b
+        const blueMorning = between(t('dawn'), t('sunriseEnd'))
+        const blueEvening = between(t('sunsetStart'), t('dusk'))
+        const goldenMorning = between(t('sunriseEnd'), t('goldenHourEnd'))
+        const goldenEvening = between(t('goldenHour'), t('sunsetStart'))
+        if (blueMorning || blueEvening) return 'blue'
+        if (goldenMorning || goldenEvening) return 'golden'
+        const isDay = between(t('sunrise'), t('sunset'))
+        return isDay ? 'light' : 'dark'
+      } catch (_) { return this.detectHeuristic(now) }
+    },
+    detect (now = new Date()) { return this.detectPrecise(now) },
+    current () { for (const k of this.KEYS) if (document.body.classList.contains(`theme-${k}`)) return k; return null },
+    updateToggleUI (theme) {
+      const btn = document.getElementById('theme-toggle')
+      if (!btn) return
+      const sun = btn.querySelector('.icon-sun')
+      const moon = btn.querySelector('.icon-moon')
+      const gh = btn.querySelector('.gh-badge')
+      const bh = btn.querySelector('.bh-badge')
+      const isLightish = theme === 'light' || theme === 'golden'
+      if (sun) sun.style.display = isLightish ? 'block' : 'none'
+      if (moon) moon.style.display = isLightish ? 'none' : 'block'
+      if (gh) gh.classList.toggle('hidden', theme !== 'golden')
+      if (bh) bh.classList.toggle('hidden', theme !== 'blue')
+      const title = theme === 'golden' ? 'Golden hour theme' : theme === 'blue' ? 'Blue hour theme' : isLightish ? 'Light theme' : 'Dark theme'
+      btn.setAttribute('title', title)
+      btn.setAttribute('aria-label', title)
+    },
+    set (theme) {
+      document.body.classList.remove('theme-light','theme-dark','theme-golden','theme-blue')
+      document.body.classList.add(`theme-${theme}`)
+      this.updateToggleUI(theme)
+      const meta = document.querySelector('meta[name="theme-color"]')
+      if (meta) {
+        const color = theme === 'dark' ? '#0b0b0b' : theme === 'blue' ? '#0f172a' : theme === 'golden' ? '#fff7ed' : '#fafaf9'
+        meta.setAttribute('content', color)
+      }
     }
   }
 
   // Initialize based on time of day (golden/blue only during their windows)
   let userOverride = false
-  const initialTheme = detectTimeTheme()
-  setTheme(initialTheme)
+  const initialTheme = Theme.detect()
+  Theme.set(initialTheme)
 
   const toggleBtn = document.getElementById('theme-toggle')
   if (toggleBtn) {
     toggleBtn.addEventListener('click', () => {
       userOverride = true
-      const c = currentTheme() || initialTheme
+      const c = Theme.current() || initialTheme
       const next = c === 'dark' || c === 'blue' ? 'light' : 'dark'
-      setTheme(next)
+      Theme.set(next)
     })
   }
 
   // Periodically re-evaluate time-based theme if user hasn't overridden
   setInterval(() => {
     if (userOverride) return
-    const t = detectTimeTheme()
-    if (t !== currentTheme()) setTheme(t)
-  }, 60000)
+    const t = Theme.detect()
+    if (t !== Theme.current()) Theme.set(t)
+  }, THEME_RECHECK_MS)
 
   // Acquire geolocation for precise sun times (updates immediately if no override)
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       pos => {
         try {
-          GEO_POS = {
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude
-          }
-          if (!userOverride) setTheme(detectThemePrecise(new Date()))
+          Theme.geo = { latitude: pos.coords.latitude, longitude: pos.coords.longitude }
+          if (!userOverride) Theme.set(Theme.detect(new Date()))
         } catch (_) {}
       },
       () => {},
@@ -232,7 +197,7 @@ function initOnce () {
         }
 
         // Ensure entrance animation is applied (once per grid)
-        Array.from(grids).forEach(animateGridEntrance)
+        triggerEntranceAllGrids()
       })
     })
   }
