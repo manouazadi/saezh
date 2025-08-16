@@ -11,7 +11,7 @@ function initOnce () {
   })
 
   // Ensure grid entrance animation runs on initial load/refresh
-  function setupGridEntranceOnLoad() {
+  function setupGridEntranceOnLoad () {
     const animatedGridsLoad = new WeakSet()
     const run = () => {
       const gridsArr = Array.from(grids)
@@ -50,31 +50,48 @@ function initOnce () {
           })
 
           // Initial state
-          gsap.set(items, { y: 30, autoAlpha: 0, scale: 0.97, filter: 'blur(2px)' })
+          gsap.set(items, {
+            y: 30,
+            autoAlpha: 0,
+            scale: 0.97,
+            filter: 'blur(2px)'
+          })
 
           // Cinematic micro-overshoot + blur/opacity tail
           rows.forEach((row, idx) => {
             const tl = gsap.timeline({ delay: idx * 0.12 })
-            tl.to(row.els, {
-              y: 0,
-              scale: 1.012,
-              duration: 0.7,
-              ease: 'cubic-bezier(0.25, 1, 0.5, 1)',
-              stagger: 0.05
-            }, 0)
-            tl.to(row.els, {
-              scale: 1,
-              duration: 0.25,
-              ease: 'power1.out',
-              stagger: 0.05
-            }, 0.62)
-            tl.to(row.els, {
-              filter: 'blur(0px)',
-              autoAlpha: 1,
-              duration: 1.1,
-              ease: 'power2.out',
-              stagger: 0.05
-            }, 0.1)
+            tl.to(
+              row.els,
+              {
+                y: 0,
+                scale: 1.012,
+                duration: 0.7,
+                ease: 'cubic-bezier(0.25, 1, 0.5, 1)',
+                stagger: 0.05
+              },
+              0
+            )
+            tl.to(
+              row.els,
+              {
+                scale: 1,
+                duration: 0.25,
+                ease: 'power1.out',
+                stagger: 0.05
+              },
+              0.62
+            )
+            tl.to(
+              row.els,
+              {
+                filter: 'blur(0px)',
+                autoAlpha: 1,
+                duration: 1.1,
+                ease: 'power2.out',
+                stagger: 0.05
+              },
+              0.1
+            )
           })
         })
       })
@@ -85,7 +102,6 @@ function initOnce () {
   }
 
   setupGridEntranceOnLoad()
-
 
   // THEME: light, dark, golden hour, blue hour
   const THEME_KEYS = ['light', 'dark', 'golden', 'blue']
@@ -117,7 +133,8 @@ function initOnce () {
       const { latitude, longitude } = GEO_POS
       const times = SunCalc.getTimes(now, latitude, longitude)
       const n = now.getTime()
-      const t = key => (times && times[key] instanceof Date ? times[key].getTime() : NaN)
+      const t = key =>
+        times && times[key] instanceof Date ? times[key].getTime() : NaN
       const between = (a, b) => !isNaN(a) && !isNaN(b) && n >= a && n < b
 
       // Blue hour around civil twilight
@@ -145,7 +162,8 @@ function initOnce () {
   }
 
   function currentTheme () {
-    for (const k of THEME_KEYS) if (document.body.classList.contains(`theme-${k}`)) return k
+    for (const k of THEME_KEYS)
+      if (document.body.classList.contains(`theme-${k}`)) return k
     return null
   }
 
@@ -164,11 +182,14 @@ function initOnce () {
     if (gh) gh.classList.toggle('hidden', theme !== 'golden')
     if (bh) bh.classList.toggle('hidden', theme !== 'blue')
 
-    const title = theme === 'golden'
-      ? 'Golden hour theme'
-      : theme === 'blue'
+    const title =
+      theme === 'golden'
+        ? 'Golden hour theme'
+        : theme === 'blue'
         ? 'Blue hour theme'
-        : isLightish ? 'Light theme' : 'Dark theme'
+        : isLightish
+        ? 'Light theme'
+        : 'Dark theme'
     btn.setAttribute('title', title)
     btn.setAttribute('aria-label', title)
   }
@@ -180,7 +201,14 @@ function initOnce () {
     // Optionally also update meta theme-color for mobile UI
     const meta = document.querySelector('meta[name="theme-color"]')
     if (meta) {
-      const color = theme === 'dark' ? '#0b0b0b' : theme === 'blue' ? '#0f172a' : theme === 'golden' ? '#fff7ed' : '#fafaf9'
+      const color =
+        theme === 'dark'
+          ? '#0b0b0b'
+          : theme === 'blue'
+          ? '#0f172a'
+          : theme === 'golden'
+          ? '#fff7ed'
+          : '#fafaf9'
       meta.setAttribute('content', color)
     }
   }
@@ -212,9 +240,12 @@ function initOnce () {
     navigator.geolocation.getCurrentPosition(
       pos => {
         try {
-          GEO_POS = { latitude: pos.coords.latitude, longitude: pos.coords.longitude }
+          GEO_POS = {
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude
+          }
           if (!userOverride) setTheme(detectThemePrecise(new Date()))
-        } catch(_){}
+        } catch (_) {}
       },
       () => {},
       { enableHighAccuracy: false, maximumAge: 3600000, timeout: 5000 }
@@ -298,28 +329,40 @@ function initOnce () {
               rows.forEach((row, idx) => {
                 const tl = gsap.timeline({ delay: idx * 0.12 })
                 // Primary motion (position + micro-overshoot scale)
-                tl.to(row.els, {
-                  y: 0,
-                  scale: 1.012,
-                  duration: 0.7,
-                  ease: 'cubic-bezier(0.25, 1, 0.5, 1)',
-                  stagger: 0.05
-                }, 0)
+                tl.to(
+                  row.els,
+                  {
+                    y: 0,
+                    scale: 1.012,
+                    duration: 0.7,
+                    ease: 'cubic-bezier(0.25, 1, 0.5, 1)',
+                    stagger: 0.05
+                  },
+                  0
+                )
                 // Settle from overshoot to 1.0
-                tl.to(row.els, {
-                  scale: 1,
-                  duration: 0.25,
-                  ease: 'power1.out',
-                  stagger: 0.05
-                }, 0.62)
+                tl.to(
+                  row.els,
+                  {
+                    scale: 1,
+                    duration: 0.25,
+                    ease: 'power1.out',
+                    stagger: 0.05
+                  },
+                  0.62
+                )
                 // Tail: blur reduces and opacity finishes just after the motion
-                tl.to(row.els, {
-                  filter: 'blur(0px)',
-                  autoAlpha: 1,
-                  duration: 1.1,
-                  ease: 'power2.out',
-                  stagger: 0.05
-                }, 0.1)
+                tl.to(
+                  row.els,
+                  {
+                    filter: 'blur(0px)',
+                    autoAlpha: 1,
+                    duration: 1.1,
+                    ease: 'power2.out',
+                    stagger: 0.05
+                  },
+                  0.1
+                )
               })
             })
           })
@@ -581,7 +624,12 @@ async function initFilms () {
   renderFilmCards()
 }
 
-
+// initialize films after page load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initFilms)
+} else {
+  initFilms()
+}
 
 // Run once on load
 if (document.readyState === 'loading') {
@@ -590,3 +638,39 @@ if (document.readyState === 'loading') {
   initOnce()
 }
 
+// Works dynamic rendering
+async function initWorks () {
+  try {
+    const res = await fetch('/public/data/works.json', { cache: 'no-store' })
+    if (!res.ok) throw new Error('Failed to load works')
+    const json = await res.json()
+    const grid = document.querySelector('#works .grid')
+    if (!grid) return
+    const items = Array.isArray(json.items) ? json.items : []
+    grid.innerHTML = items
+      .map(
+        w => `
+                    <article class="grid-item p-2">
+                      <div class="rounded-lg overflow-hidden aspect-square">
+                        <img loading="lazy" decoding="async" class="w-full h-full object-cover" src="${
+                          w.thumb
+                        }" alt="${w.title || 'Work'}">
+                      </div>
+                      <div class="mt-3">
+                        <p class="text-stone-600 text-sm">${
+                          w.description || ''
+                        }</p>
+                        ${
+                          w.link
+                            ? `<a href="${w.link}" class="text-stone-900 hover:underline text-sm font-medium mt-2 inline-block">View work →</a>`
+                            : ''
+                        }
+                      </div>
+                    </article>
+                  `
+      )
+      .join('')
+  } catch (_) {
+    /* keep static fallback if any */
+  }
+}
