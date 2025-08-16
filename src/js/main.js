@@ -10,98 +10,59 @@ function initOnce () {
     masonryInstances.push({ el: g, msnry })
   })
 
-  // Ensure grid entrance animation runs on initial load/refresh
-  function setupGridEntranceOnLoad () {
-    const animatedGridsLoad = new WeakSet()
-    const run = () => {
-      const gridsArr = Array.from(grids)
-      gridsArr.forEach(gridEl => {
-        if (!window.imagesLoaded || !window.gsap) return
-        imagesLoaded(gridEl, { background: false }, () => {
-          if (animatedGridsLoad.has(gridEl)) return
-          animatedGridsLoad.add(gridEl)
-          const inst = masonryInstances.find(m => m.el === gridEl)
-          if (inst && inst.msnry && typeof inst.msnry.layout === 'function') {
-            inst.msnry.layout()
+  // Shared guard for one-time entrance animation per grid
+  const animatedGrids = new WeakSet()
+
+  // Single reusable entrance animation for a grid
+  function animateGridEntrance (gridEl) {
+    if (!window.imagesLoaded || !window.gsap) return
+    imagesLoaded(gridEl, { background: false }, () => {
+      if (animatedGrids.has(gridEl)) return
+      animatedGrids.add(gridEl)
+      const inst = masonryInstances.find(m => m.el === gridEl)
+      if (inst && inst.msnry && typeof inst.msnry.layout === 'function') {
+        inst.msnry.layout()
+      }
+      const items = Array.from(gridEl.querySelectorAll('.grid-item'))
+      if (!items.length) return
+      const gridRect = gridEl.getBoundingClientRect()
+      const mapped = items
+        .map(el => {
+          const r = el.getBoundingClientRect()
+          return {
+            el,
+            top: Math.round(r.top - gridRect.top),
+            left: Math.round(r.left - gridRect.left)
           }
-          const items = Array.from(gridEl.querySelectorAll('.grid-item'))
-          if (!items.length) return
-          const gridRect = gridEl.getBoundingClientRect()
-          const mapped = items
-            .map(el => {
-              const r = el.getBoundingClientRect()
-              return {
-                el,
-                top: Math.round(r.top - gridRect.top),
-                left: Math.round(r.left - gridRect.left)
-              }
-            })
-            .sort((a, b) => a.top - b.top || a.left - b.left)
-
-          const rows = []
-          const threshold = 10
-          mapped.forEach(entry => {
-            const last = rows[rows.length - 1]
-            if (!last || Math.abs(entry.top - last.top) > threshold) {
-              rows.push({ top: entry.top, els: [entry.el] })
-            } else {
-              last.els.push(entry.el)
-            }
-          })
-
-          // Initial state
-          gsap.set(items, {
-            y: 30,
-            autoAlpha: 0,
-            scale: 0.97,
-            filter: 'blur(2px)'
-          })
-
-          // Cinematic micro-overshoot + blur/opacity tail
-          rows.forEach((row, idx) => {
-            const tl = gsap.timeline({ delay: idx * 0.12 })
-            tl.to(
-              row.els,
-              {
-                y: 0,
-                scale: 1.012,
-                duration: 0.7,
-                ease: 'cubic-bezier(0.25, 1, 0.5, 1)',
-                stagger: 0.05
-              },
-              0
-            )
-            tl.to(
-              row.els,
-              {
-                scale: 1,
-                duration: 0.25,
-                ease: 'power1.out',
-                stagger: 0.05
-              },
-              0.62
-            )
-            tl.to(
-              row.els,
-              {
-                filter: 'blur(0px)',
-                autoAlpha: 1,
-                duration: 1.1,
-                ease: 'power2.out',
-                stagger: 0.05
-              },
-              0.1
-            )
-          })
         })
-      })
-    }
+        .sort((a, b) => a.top - b.top || a.left - b.left)
 
-    if (window.imagesLoaded && window.gsap) run()
-    else window.addEventListener('load', run)
+      const rows = []
+      const threshold = 10
+      mapped.forEach(entry => {
+        const last = rows[rows.length - 1]
+        if (!last || Math.abs(entry.top - last.top) > threshold) {
+          rows.push({ top: entry.top, els: [entry.el] })
+        } else {
+          last.els.push(entry.el)
+        }
+      })
+
+      // Initial state
+      gsap.set(items, { y: 30, autoAlpha: 0, scale: 0.97, filter: 'blur(2px)' })
+
+      // Cinematic micro-overshoot + blur/opacity tail
+      rows.forEach((row, idx) => {
+        const tl = gsap.timeline({ delay: idx * 0.12 })
+        tl.to(row.els, { y: 0, scale: 1.012, duration: 0.7, ease: 'cubic-bezier(0.25, 1, 0.5, 1)', stagger: 0.05 }, 0)
+        tl.to(row.els, { scale: 1, duration: 0.25, ease: 'power1.out', stagger: 0.05 }, 0.62)
+        tl.to(row.els, { filter: 'blur(0px)', autoAlpha: 1, duration: 1.1, ease: 'power2.out', stagger: 0.05 }, 0.1)
+      })
+    })
   }
 
-  setupGridEntranceOnLoad()
+  // Trigger entrance once per grid on initial load
+  Array.from(grids).forEach(animateGridEntrance)
 
   // THEME: light, dark, golden hour, blue hour
   const THEME_KEYS = ['light', 'dark', 'golden', 'blue']
@@ -270,103 +231,8 @@ function initOnce () {
           })
         }
 
-        // Guard so entrance animation plays only once per grid
-        const animatedGrids = new WeakSet()
-
-        // Wait for images to be loaded before animating
-        if (window.imagesLoaded && window.gsap) {
-          const gridsArr = Array.from(grids)
-          gridsArr.forEach(gridEl => {
-            imagesLoaded(gridEl, { background: false }, () => {
-              if (animatedGrids.has(gridEl)) return // already animated once
-              animatedGrids.add(gridEl)
-              // Re-layout Masonry for this grid to ensure final positions
-              const inst = masonryInstances.find(m => m.el === gridEl)
-              if (
-                inst &&
-                inst.msnry &&
-                typeof inst.msnry.layout === 'function'
-              ) {
-                inst.msnry.layout()
-              }
-
-              // Stagger by row: group items by their top position after Masonry layout
-              const nodeList = gridEl.querySelectorAll('.grid-item')
-              const items = Array.from(nodeList)
-              if (!items.length) return
-              const gridRect = gridEl.getBoundingClientRect()
-              const mapped = items
-                .map(el => {
-                  const r = el.getBoundingClientRect()
-                  return {
-                    el,
-                    top: Math.round(r.top - gridRect.top),
-                    left: Math.round(r.left - gridRect.left)
-                  }
-                })
-                .sort((a, b) => a.top - b.top || a.left - b.left)
-
-              const rows = []
-              const threshold = 10 // px tolerance for same row
-              mapped.forEach(entry => {
-                const last = rows[rows.length - 1]
-                if (!last || Math.abs(entry.top - last.top) > threshold) {
-                  rows.push({ top: entry.top, els: [entry.el] })
-                } else {
-                  last.els.push(entry.el)
-                }
-              })
-
-              // Initial state with softer, smoother motion
-              gsap.set(items, {
-                y: 30,
-                autoAlpha: 0,
-                scale: 0.97,
-                filter: 'blur(2px)'
-              })
-
-              // Animate rows with a cinematic ease and a slight blur/opacity tail
-              rows.forEach((row, idx) => {
-                const tl = gsap.timeline({ delay: idx * 0.12 })
-                // Primary motion (position + micro-overshoot scale)
-                tl.to(
-                  row.els,
-                  {
-                    y: 0,
-                    scale: 1.012,
-                    duration: 0.7,
-                    ease: 'cubic-bezier(0.25, 1, 0.5, 1)',
-                    stagger: 0.05
-                  },
-                  0
-                )
-                // Settle from overshoot to 1.0
-                tl.to(
-                  row.els,
-                  {
-                    scale: 1,
-                    duration: 0.25,
-                    ease: 'power1.out',
-                    stagger: 0.05
-                  },
-                  0.62
-                )
-                // Tail: blur reduces and opacity finishes just after the motion
-                tl.to(
-                  row.els,
-                  {
-                    filter: 'blur(0px)',
-                    autoAlpha: 1,
-                    duration: 1.1,
-                    ease: 'power2.out',
-                    stagger: 0.05
-                  },
-                  0.1
-                )
-              })
-            })
-          })
-        }
+        // Ensure entrance animation is applied (once per grid)
+        Array.from(grids).forEach(animateGridEntrance)
       })
     })
   }
