@@ -1,0 +1,30 @@
+{
+  "featured": {
+    "src": "",
+    "poster": "/public/images/photos/IMG_3772.webp"
+  },
+  "items": [
+    {
+      "title": "MoinForever",
+      "thumb": "/public/images/photos/IMG_3438.webp",
+      "description": "A short film for the 2025 Bremen Film Festival’s competition with the motto of “Mein Bremen ist Echt”, which literally translates to “My Bremen is real”. This film is a dedication to the city I have been feeling like home for the past few years.",
+      "castColor": "amber",
+      "cast": ["Actor One", "Actor Two"]
+    },
+    {
+      "title": "The Lock & …",
+      "thumb": "/public/images/photos/IMG_3772.webp",
+      "description": "It is the everyday life of an immigrant in Bremen, Germany. He is busy with his life, and on top of it, he misses his family and home country. One evening his apartment door which is not working properly troubles him.",
+      "castColor": "sky",
+      "cast": ["Actor A", "Actor B"]
+    },
+    {
+      "title": "Another Film",
+      "thumb": "/public/images/photos/blackbird.webp",
+      "description": "A short description of the film. Replace with the actual synopsis of the project.",
+      "castColor": "emerald",
+      "cast": ["Cast Member 1", "Cast Member 2"]
+    }
+  ]
+}
+

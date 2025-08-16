@@ -1,0 +1,71 @@
+@import url(/node_modules/reset-css/reset.css);
+
+/* Masonry/grid base */
+        .grid {
+            perspective: 1000px;
+            perspective-origin: 50% 50%;
+        }
+        .grid-item {
+            width: 24%;
+            margin-bottom: 1rem;
+            position: relative; /* needed for z-index to work */
+            transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+            transform-origin: center;
+            transform-style: preserve-3d;
+            transition: transform 150ms ease, box-shadow 150ms ease;
+            will-change: transform;
+        }
+        @media (max-width: 1024px) {
+            .grid-item { width: 32%; }
+        }
+        @media (max-width: 768px) {
+            .grid-item { width: 48%; }
+        }
+        @media (max-width: 640px) {
+            .grid-item { width: 98%; }
+        }
+
+
+        .menu {
+            /* background-color: #ffffff0c; */
+            box-shadow: 0 0px 0px rgba(0,0,0,1);
+            backdrop-filter: blur(3px);
+        }
+
+
+/* Theme styles */
+body.theme-light {
+  background-color: #fafaf9; /* stone-50 */
+  color: #1c1917; /* stone-900 */
+}
+header.theme, header, .menu { /* ensure header contrasts */ }
+body.theme-dark { background-color: #0b0b0b; color: #e5e7eb; }
+body.theme-dark header { background-color: rgba(10,10,10,0.9); }
+body.theme-dark a { color: #d1d5db; }
+body.theme-dark a:hover { color: #f9fafb; }
+
+/* Golden hour: warm background and accents; shows only during golden window */
+body.theme-golden { background-color: #fff7ed; color: #7c2d12; }
+body.theme-golden header { background-color: rgba(255,247,237,0.9); }
+#theme-toggle .gh-badge { background: #fed7aa; color: #7c2d12; }
+
+/* Blue hour: deep blue background */
+body.theme-blue { background-color: #0f172a; color: #e2e8f0; }
+body.theme-blue header { background-color: rgba(15,23,42,0.9); }
+#theme-toggle .bh-badge { background: #93c5fd; color: #0c4a6e; }
+
+/* Tweak default Tailwind-based colors for containers/cards in dark/blue */
+body.theme-dark .bg-white,
+body.theme-blue .bg-white { background-color: rgba(255,255,255,0.06); }
+body.theme-dark .text-stone-600,
+body.theme-blue .text-stone-600 { color: #cbd5e1; }
+body.theme-dark .border-stone-200,
+body.theme-blue .border-stone-200 { border-color: rgba(255,255,255,0.15); }
+
+/* Keep nav current section bold restoration (class toggled by JS) */
+header nav a.font-bold { font-weight: 700; }
+
+
+/* Invert logo for dark/golden/blue to maintain contrast */
+body.theme-dark .site-logo,
+body.theme-blue .site-logo { filter: invert(1) hue-rotate(180deg); }

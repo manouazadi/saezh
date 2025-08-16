@@ -1,0 +1,29 @@
+{
+  "items": [
+    {
+      "title": "City Lights",
+      "thumb": "/public/images/photos/IMG_3438.jpg",
+      "description": "A square work preview with a short description of the project.",
+      "link": "#"
+    },
+    {
+      "title": "Blackbird",
+      "thumb": "/public/images/photos/blackbird.jpg",
+      "description": "Another example work with a 1:1 image and a link below.",
+      "link": "#"
+    },
+    {
+      "title": "Streets of Bremen",
+      "thumb": "/public/images/photos/IMG_3772.jpg",
+      "description": "Include any details here: role, tools, or a brief synopsis.",
+      "link": "#"
+    },
+    {
+      "title": "Cuba in Bremen",
+      "thumb": "/public/images/photos/CubaBremen.jpg",
+      "description": "Candid moments from the city, framed in a 1:1 grid tile.",
+      "link": "#"
+    }
+  ]
+}
+
