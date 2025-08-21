@@ -6,24 +6,31 @@
   "items": [
     {
       "title": "MoinForever",
-      "thumb": "/public/images/photos/IMG_3438.webp",
+      "thumb": "/public/images/photos/moin.webp",
       "description": "A short film for the 2025 Bremen Film Festival’s competition with the motto of “Mein Bremen ist Echt”, which literally translates to “My Bremen is real”. This film is a dedication to the city I have been feeling like home for the past few years.",
       "castColor": "amber",
-      "cast": ["Actor One", "Actor Two"]
+      "cast": ["Krishnanjan Pramanik"]
     },
     {
-      "title": "The Lock & …",
-      "thumb": "/public/images/photos/IMG_3772.webp",
+      "title": "The Lock & … | Joy Bhaduri's Story",
+      "thumb": "/public/images/photos/lock.webp",
       "description": "It is the everyday life of an immigrant in Bremen, Germany. He is busy with his life, and on top of it, he misses his family and home country. One evening his apartment door which is not working properly troubles him.",
       "castColor": "sky",
-      "cast": ["Actor A", "Actor B"]
+      "cast": ["Krishnanjan Pramanik"]
     },
     {
-      "title": "Another Film",
-      "thumb": "/public/images/photos/blackbird.webp",
-      "description": "A short description of the film. Replace with the actual synopsis of the project.",
+      "title": "Blue Kite",
+      "thumb": "/public/images/photos/bluekite.webp",
+      "description": "Blue kite is a part of a project 34 Afghan Window which is work by two great artists Joel and Elena. This project discusses the suffering of people of Afghanistan, especially Women of Afghanistan. The Blue Kite takes a turn from suffering, and day dreams what happens if we could rebuild our home again.",
       "castColor": "emerald",
-      "cast": ["Cast Member 1", "Cast Member 2"]
+      "cast": ["Elena", "Joel"]
+    },
+        {
+      "title": "Documented Life of Monsieur Tang",
+      "thumb": "/public/images/photos/monsieur.webp",
+      "description": "A story of a man who refuses to believe he is a regular person like everybody else.",
+      "castColor": "emerald",
+      "cast": ["Reza Mora"]
     }
   ]
 }
