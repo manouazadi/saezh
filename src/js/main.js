@@ -428,18 +428,25 @@ function initOnce () {
   }
 }
 
-// Render featured video
+// Render featured video using vlitejs
 function renderFeatured () {
-  const video = document.getElementById('featured-video')
-  if (!video) return
-  const source = video.querySelector('source')
-  if (source && filmsData.featured.src) {
-    source.src = filmsData.featured.src
-    video.load()
+  const container = document.getElementById('featured-video-container')
+  if (!container) return
+
+  // Wait for video-player module to load and expose initFeaturedPlayer
+  const tryInit = () => {
+    if (typeof window.initFeaturedPlayer === 'function') {
+      window.initFeaturedPlayer({
+        src: filmsData.featured.src || '',
+        youtube: filmsData.featured.youtube || '',
+        poster: filmsData.featured.poster || ''
+      })
+    } else {
+      // Retry after a short delay if module not loaded yet
+      setTimeout(tryInit, 100)
+    }
   }
-  if (filmsData.featured.poster) {
-    video.setAttribute('poster', filmsData.featured.poster)
-  }
+  tryInit()
 }
 
 // Render film cards from JSON

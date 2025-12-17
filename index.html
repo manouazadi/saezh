@@ -47,6 +47,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
     <script src="/src/js/main.js"></script>
+    <script type="module" src="/src/js/video-player.js"></script>
     <link rel="stylesheet" href="/src/style.css">
 
     <style>
@@ -143,11 +144,8 @@
         <!-- Films -->
         <section id="films" class="py-12 px-4 md:px-6 lg:px-8 min-w-[100vw] snap-center">
             <!-- Featured Video (16:9) -->
-            <div class="w-full bg-stone-200 rounded-lg overflow-hidden mb-10 aspect-video">
-                <video id="featured-video" class="w-full h-full object-cover" controls poster="/public/images/photos/IMG_3772.webp">
-                    <source src="" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
+            <div id="featured-video-container" class="w-full bg-stone-200 rounded-lg overflow-hidden mb-10 aspect-video">
+                <!-- vlitejs will render the player here -->
             </div>
 
 

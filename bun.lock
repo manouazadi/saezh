@@ -12,6 +12,7 @@
         "reset-css": "^5.0.2",
         "typescript": "^5.2.2",
         "vite": "^5.0.8",
+        "vlitejs": "^8.0.0",
       },
     },
   },
@@ -112,6 +113,10 @@
 
     "typescript": ["typescript@5.3.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-pXWcraxM0uxAS+tN0AG/BF2TyqmHO014Z070UsJ+pFvYuRSq8KH8DmWpnbXe0pEPDHXZV3FcAbJkijJ5oNEnWw=="],
 
+    "validate-target": ["validate-target@3.1.1", "", {}, "sha512-MRTgeSwwI8fyNPzRi8SsZiU6LSwlsRE3cLiynyse8G82hjEkfq/setjs0D789FwKrtnDCZn7m0MHlklDPzs74g=="],
+
     "vite": ["vite@5.0.12", "", { "dependencies": { "esbuild": "^0.19.3", "postcss": "^8.4.32", "rollup": "^4.2.0" }, "optionalDependencies": { "fsevents": "~2.3.3" }, "peerDependencies": { "@types/node": "^18.0.0 || >=20.0.0", "less": "*", "lightningcss": "^1.21.0", "sass": "*", "stylus": "*", "sugarss": "*", "terser": "^5.4.0" }, "optionalPeers": ["@types/node", "less", "lightningcss", "sass", "stylus", "sugarss", "terser"], "bin": "bin/vite.js" }, "sha512-4hsnEkG3q0N4Tzf1+t6NdN9dg/L3BM+q8SWgbSPnJvrgH2kgdyzfVJwbR1ic69/4uMJJ/3dqDZZE5/WwqW8U1w=="],
+
+    "vlitejs": ["vlitejs@8.0.0", "", { "dependencies": { "validate-target": "^3.1.1" } }, "sha512-sXxOB0Q7bPnDKhbbuVVwWK3obb074uz5r0uK8mNfQWkO9br9HQ4Bqd7vhXCw03wUvF2jQY9GcTe6CUzU13C11w=="],
   }
 }

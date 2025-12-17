@@ -93,3 +93,20 @@ header nav a.font-bold { font-weight: 700; }
 
 /* Invert logo for dark theme to maintain contrast */
 body.theme-dark .site-logo { filter: invert(1) hue-rotate(180deg); }
+
+/* vlitejs video player styling */
+#featured-video-container {
+  position: relative;
+}
+#featured-video-container .v-vlite {
+  width: 100%;
+  height: 100%;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+#featured-video-container .v-vlite video,
+#featured-video-container .v-vlite iframe {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
