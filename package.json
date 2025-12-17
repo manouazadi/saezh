@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "build": "bun scripts/generate-photos.js && tsc && vite build",
+    "preview": "vite preview",
+    "photos": "bun scripts/generate-photos.js"
   },
   "devDependencies": {
     "reset-css": "^5.0.2",

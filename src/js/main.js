@@ -303,17 +303,32 @@ function initOnce () {
     })
   })()
 
-  // Enhanced 3D tilt on mouse move + z-index on hover
-  const TILT = {
-    maxRotateX: 12,    // degrees - tilt forward/back
-    maxRotateY: 15,    // degrees - tilt left/right
-    maxRotateZ: 4,     // degrees - subtle twist
-    maxTranslateZ: 30, // pixels - lift towards viewer
-    scale: 1.03        // slight scale up on hover
-  }
-  const items = document.querySelectorAll('.grid-item')
+  // Modal close handlers (set up once)
+  setupModalHandlers()
+}
+
+// Enhanced 3D tilt configuration
+const TILT = {
+  maxRotateX: 12,    // degrees - tilt forward/back
+  maxRotateY: 15,    // degrees - tilt left/right
+  maxRotateZ: 4,     // degrees - subtle twist
+  maxTranslateZ: 30, // pixels - lift towards viewer
+  scale: 1.03        // slight scale up on hover
+}
+
+// Track which items already have listeners to avoid duplicates
+const initializedItems = new WeakSet()
+
+// Apply 3D tilt and click handlers to grid items
+function setupGridItemEffects (container) {
+  if (!container) container = document
+  const items = container.querySelectorAll('.grid-item')
 
   items.forEach(item => {
+    // Skip if already initialized
+    if (initializedItems.has(item)) return
+    initializedItems.add(item)
+
     let raf = null
     let isHovering = false
 
@@ -378,24 +393,35 @@ function initOnce () {
     item.addEventListener('click', () => {
       const img = item.querySelector('img')
       const fullSrc = img?.dataset?.full || img?.src
-      const modal = document.getElementById('modal')
-      const modalImg = document.getElementById('modal-image')
-      if (!modal || !modalImg || !fullSrc) return
-
-      modalImg.src = fullSrc
-      modal.classList.remove('hidden')
-      if (window.gsap) {
-        gsap.fromTo(
-          modal,
-          { autoAlpha: 0 },
-          { autoAlpha: 1, duration: 0.25, ease: 'power2.out' }
-        )
-      }
-      document.body.style.overflow = 'hidden'
+      openImageModal(fullSrc)
     })
   })
+}
 
-  // Modal close handlers
+// Open image in modal
+function openImageModal (src) {
+  const modal = document.getElementById('modal')
+  const modalImg = document.getElementById('modal-image')
+  if (!modal || !modalImg || !src) return
+
+  modalImg.src = src
+  modal.classList.remove('hidden')
+  if (window.gsap) {
+    gsap.fromTo(
+      modal,
+      { autoAlpha: 0 },
+      { autoAlpha: 1, duration: 0.25, ease: 'power2.out' }
+    )
+  }
+  document.body.style.overflow = 'hidden'
+}
+
+// Set up modal close handlers (call once)
+let modalHandlersSet = false
+function setupModalHandlers () {
+  if (modalHandlersSet) return
+  modalHandlersSet = true
+
   const modal = document.getElementById('modal')
   const modalClose = document.getElementById('modal-close')
   if (modal && modalClose) {
@@ -493,9 +519,10 @@ function renderFilmCards () {
 function validateFilmsData (data) {
   try {
     if (!data || typeof data !== 'object') return null
-    const out = { featured: { src: '', poster: '' }, items: [] }
+    const out = { featured: { src: '', youtube: '', poster: '' }, items: [] }
     const f = data.featured || {}
     out.featured.src = typeof f.src === 'string' ? f.src : ''
+    out.featured.youtube = typeof f.youtube === 'string' ? f.youtube : ''
     out.featured.poster = typeof f.poster === 'string' ? f.poster : ''
     if (Array.isArray(data.items)) {
       out.items = data.items
@@ -544,6 +571,102 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initOnce)
 } else {
   initOnce()
+}
+
+// Photos dynamic rendering
+let photosData = { photos: [] }
+
+async function loadPhotos () {
+  try {
+    const res = await fetch('/public/data/photos.json', { cache: 'no-store' })
+    if (!res.ok) throw new Error('Failed to load photos')
+    const json = await res.json()
+    photosData = json
+    return json
+  } catch (e) {
+    console.warn('Could not load photos.json:', e)
+    return null
+  }
+}
+
+function renderPhotos () {
+  const grid = document.getElementById('photos-grid')
+  if (!grid || !Array.isArray(photosData.photos)) return
+
+  grid.innerHTML = photosData.photos
+    .map(
+      photo => `
+        <div class="grid-item p-2">
+          <img loading="lazy" decoding="async" class="rounded-lg shadow-md" src="${photo.src}" alt="${photo.alt || 'Photo'}">
+        </div>
+      `
+    )
+    .join('')
+}
+
+async function initPhotos () {
+  await loadPhotos()
+  renderPhotos()
+  // Re-initialize Masonry after photos are loaded
+  const grid = document.getElementById('photos-grid')
+  if (grid && window.Masonry) {
+    const msnry = new Masonry(grid, {
+      itemSelector: '.grid-item',
+      percentPosition: true
+    })
+    // Layout after images load and set up effects
+    if (window.imagesLoaded) {
+      imagesLoaded(grid, () => {
+        msnry.layout()
+        setupGridItemEffects(grid)
+      })
+    } else {
+      setupGridItemEffects(grid)
+    }
+  } else {
+    setupGridItemEffects(grid)
+  }
+}
+
+// Auto-refresh photos every 15 minutes
+function startPhotosAutoRefresh () {
+  setInterval(async () => {
+    const oldCount = photosData.photos?.length || 0
+    await loadPhotos()
+    const newCount = photosData.photos?.length || 0
+    // Only re-render if count changed
+    if (newCount !== oldCount) {
+      renderPhotos()
+      const grid = document.getElementById('photos-grid')
+      if (grid && window.Masonry) {
+        const msnry = new Masonry(grid, {
+          itemSelector: '.grid-item',
+          percentPosition: true
+        })
+        if (window.imagesLoaded) {
+          imagesLoaded(grid, () => {
+            msnry.layout()
+            setupGridItemEffects(grid)
+          })
+        } else {
+          setupGridItemEffects(grid)
+        }
+      } else {
+        setupGridItemEffects(grid)
+      }
+    }
+  }, 15 * 60 * 1000) // 15 minutes
+}
+
+// Initialize photos on load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    initPhotos()
+    startPhotosAutoRefresh()
+  })
+} else {
+  initPhotos()
+  startPhotosAutoRefresh()
 }
 
 // Works dynamic rendering
