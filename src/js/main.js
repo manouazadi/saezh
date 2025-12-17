@@ -178,15 +178,26 @@ function initOnce () {
     )
   }
 
+  // Helper: when changing sections, always reset vertical scroll to the top
+  function resetPageScrollToTop () {
+    if (typeof window === 'undefined' || typeof window.scrollTo !== 'function') return
+    try {
+      window.scrollTo({ top: 0, behavior: 'auto' })
+    } catch (_) {
+      // Fallback for older browsers that don't support options object
+      window.scrollTo(0, 0)
+    }
+  }
+
   // GSAP plugins
   if (window.gsap) {
     gsap.registerPlugin(ScrollToPlugin)
-    // Smooth horizontal scrolling between sections
+    // Smooth horizontal scrolling between sections from the top nav
     const scroller = document.getElementById('hscroll')
-    document.querySelectorAll('a[href^="#"]').forEach(link => {
+    document.querySelectorAll('header nav a[href^="#"]').forEach(link => {
       link.addEventListener('click', e => {
         const hash = link.getAttribute('href')
-        const target = document.querySelector(hash)
+        const target = hash && hash !== '#' ? document.querySelector(hash) : null
         if (target && scroller) {
           e.preventDefault()
           gsap.to(scroller, {
@@ -194,10 +205,10 @@ function initOnce () {
             scrollTo: { x: target },
             ease: 'power2.out'
           })
-        }
 
-        // Ensure entrance animation is applied (once per grid)
-        triggerEntranceAllGrids()
+          // Ensure entrance animation is applied (once per grid)
+          triggerEntranceAllGrids()
+        }
       })
     })
   }
@@ -217,6 +228,10 @@ function initOnce () {
         a.classList.toggle('text-stone-900', active)
         a.setAttribute('aria-current', active ? 'page' : 'false')
       })
+
+      // Whenever the active section changes (via nav click or swipe),
+      // reset vertical scroll so the new section starts from the top.
+      resetPageScrollToTop()
     }
 
     const scrollerEl = document.getElementById('hscroll')
