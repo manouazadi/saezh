@@ -142,15 +142,48 @@ function initOnce () {
     }
   }
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DEBUG: Theme testing controls
+  // Set these to true to force a specific theme for testing
+  // ─────────────────────────────────────────────────────────────────────────────
+  const DEBUG_THEME = {
+    enabled: false,        // Set to true to enable debug theme forcing
+    forceBlue: false,      // Force blue hour theme
+    forceGolden: false     // Force golden hour theme
+  }
+
+  // Expose debug controls to window for console access
+  window.themeDebug = {
+    enable () { DEBUG_THEME.enabled = true; console.log('Theme debug enabled') },
+    disable () { DEBUG_THEME.enabled = false; userOverride = false; Theme.set(Theme.detect()); console.log('Theme debug disabled, reverted to auto') },
+    setBlue () { DEBUG_THEME.enabled = true; DEBUG_THEME.forceBlue = true; DEBUG_THEME.forceGolden = false; Theme.set('blue'); console.log('Forced: blue') },
+    setGolden () { DEBUG_THEME.enabled = true; DEBUG_THEME.forceGolden = true; DEBUG_THEME.forceBlue = false; Theme.set('golden'); console.log('Forced: golden') },
+    setLight () { DEBUG_THEME.enabled = true; DEBUG_THEME.forceBlue = false; DEBUG_THEME.forceGolden = false; Theme.set('light'); console.log('Forced: light') },
+    setDark () { DEBUG_THEME.enabled = true; DEBUG_THEME.forceBlue = false; DEBUG_THEME.forceGolden = false; Theme.set('dark'); console.log('Forced: dark') },
+    status () { console.log('DEBUG_THEME:', DEBUG_THEME, '| current:', Theme.current()) }
+  }
+  // ─────────────────────────────────────────────────────────────────────────────
+
   // Initialize based on time of day (golden/blue only during their windows)
   let userOverride = false
-  const initialTheme = Theme.detect()
+
+  // Determine initial theme (respect debug settings)
+  function getEffectiveTheme () {
+    if (DEBUG_THEME.enabled) {
+      if (DEBUG_THEME.forceBlue) return 'blue'
+      if (DEBUG_THEME.forceGolden) return 'golden'
+    }
+    return Theme.detect()
+  }
+
+  const initialTheme = getEffectiveTheme()
   Theme.set(initialTheme)
 
   const toggleBtn = document.getElementById('theme-toggle')
   if (toggleBtn) {
     toggleBtn.addEventListener('click', () => {
       userOverride = true
+      DEBUG_THEME.enabled = false // clicking toggle disables debug forcing
       const c = Theme.current() || initialTheme
       const next = c === 'dark' || c === 'blue' ? 'light' : 'dark'
       Theme.set(next)
@@ -159,7 +192,7 @@ function initOnce () {
 
   // Periodically re-evaluate time-based theme if user hasn't overridden
   setInterval(() => {
-    if (userOverride) return
+    if (userOverride || DEBUG_THEME.enabled) return
     const t = Theme.detect()
     if (t !== Theme.current()) Theme.set(t)
   }, THEME_RECHECK_MS)
@@ -270,50 +303,72 @@ function initOnce () {
     })
   })()
 
-  // Subtle 3D tilt on mouse move + z-index on hover
-  const maxTilt = 6 // degrees for X/Y
-  const maxZ = 3 // degrees for Z
+  // Enhanced 3D tilt on mouse move + z-index on hover
+  const TILT = {
+    maxRotateX: 12,    // degrees - tilt forward/back
+    maxRotateY: 15,    // degrees - tilt left/right
+    maxRotateZ: 4,     // degrees - subtle twist
+    maxTranslateZ: 30, // pixels - lift towards viewer
+    scale: 1.03        // slight scale up on hover
+  }
   const items = document.querySelectorAll('.grid-item')
 
   items.forEach(item => {
     let raf = null
+    let isHovering = false
 
-    const applyTilt = (rx, ry, rz) => {
-      item.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg)`
+    const applyTransform = (rx, ry, rz, tz, scale) => {
+      item.style.transform = `perspective(800px) rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg) translateZ(${tz}px) scale(${scale})`
     }
 
     item.addEventListener('mousemove', e => {
+      if (!isHovering) return
+
       const rect = item.getBoundingClientRect()
       const x = e.clientX - rect.left
       const y = e.clientY - rect.top
       const cx = rect.width / 2
       const cy = rect.height / 2
-      const ry = ((x - cx) / cx) * maxTilt // rotateY
-      const rx = -((y - cy) / cy) * maxTilt // rotateX
-      const rz = ((x - cx) / cx) * maxZ // subtle rotateZ (twist)
+
+      // Normalized position from center (-1 to 1)
+      const normX = (x - cx) / cx
+      const normY = (y - cy) / cy
+
+      // Calculate rotations based on mouse position
+      const ry = normX * TILT.maxRotateY           // tilt left/right
+      const rx = -normY * TILT.maxRotateX          // tilt forward/back (inverted)
+      const rz = normX * TILT.maxRotateZ           // subtle twist
+
+      // Distance from center affects depth (closer to center = more lift)
+      const distFromCenter = Math.sqrt(normX * normX + normY * normY)
+      const tz = TILT.maxTranslateZ * (1 - distFromCenter * 0.5)
 
       if (!raf) {
         raf = requestAnimationFrame(() => {
-          applyTilt(rx.toFixed(2), ry.toFixed(2), rz.toFixed(2))
+          applyTransform(rx.toFixed(2), ry.toFixed(2), rz.toFixed(2), tz.toFixed(1), TILT.scale)
           raf = null
         })
       }
     })
 
     item.addEventListener('mouseenter', () => {
+      isHovering = true
       const computed = window.getComputedStyle(item)
       item.dataset.prevZ = item.style.zIndex || computed.zIndex || ''
       item.style.zIndex = '9999'
+      // Initial lift on enter
+      applyTransform(0, 0, 0, TILT.maxTranslateZ * 0.5, TILT.scale)
     })
 
     const resetTilt = () => {
+      isHovering = false
       // cancel any scheduled frame to avoid re-applying a tilt after reset
       if (raf) {
         cancelAnimationFrame(raf)
         raf = null
       }
       item.style.zIndex = item.dataset.prevZ || ''
-      applyTilt(0, 0, 0) // reset to original position
+      applyTransform(0, 0, 0, 0, 1) // reset to flat position
     }
 
     item.addEventListener('mouseleave', resetTilt)

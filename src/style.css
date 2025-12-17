@@ -9,11 +9,20 @@
             width: 24%;
             margin-bottom: 1rem;
             position: relative; /* needed for z-index to work */
-            transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg);
-            transform-origin: center;
+            transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) translateZ(0px) scale(1);
+            transform-origin: center center;
             transform-style: preserve-3d;
-            transition: transform 150ms ease, box-shadow 150ms ease;
+            transition: transform 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
             will-change: transform;
+        }
+        .grid-item img {
+            transition: filter 200ms ease, box-shadow 250ms ease;
+            border-radius: 5px;
+        }
+        .grid-item:hover img {
+            filter: brightness(1.03) contrast(1.02);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35),
+                        0 12px 24px -8px rgba(0, 0, 0, 0.2);
         }
         @media (max-width: 1024px) {
             .grid-item { width: 32%; }
@@ -44,28 +53,43 @@ body.theme-dark header { background-color: rgba(10,10,10,0.9); }
 body.theme-dark a { color: #d1d5db; }
 body.theme-dark a:hover { color: #f9fafb; }
 
-/* Golden hour: warm background and accents; shows only during golden window */
-body.theme-golden { background-color: #fff7ed; color: #7c2d12; }
-body.theme-golden header { background-color: rgba(255,247,237,0.9); }
-#theme-toggle .gh-badge { background: #fed7aa; color: #7c2d12; }
+/* Golden hour: hazy pastel orange/peach tones */
+body.theme-golden {
+  background-color: #fef3e2;          /* soft peach cream */
+  color: #5c3d2e;                     /* warm brown for readability */
+}
+body.theme-golden header {
+  background-color: rgba(254, 243, 226, 0.92);
+}
+body.theme-golden a { color: #8b5a3c; }
+body.theme-golden a:hover { color: #a0522d; }
+body.theme-golden .bg-white { background-color: rgba(255, 248, 240, 0.7); }
+body.theme-golden .text-stone-600 { color: #7a5c4a; }
+body.theme-golden .border-stone-200 { border-color: rgba(180, 130, 100, 0.25); }
+#theme-toggle .gh-badge { background: #f5d4b3; color: #6b4226; }
 
-/* Blue hour: deep blue background */
-body.theme-blue { background-color: #0f172a; color: #e2e8f0; }
-body.theme-blue header { background-color: rgba(15,23,42,0.9); }
-#theme-toggle .bh-badge { background: #93c5fd; color: #0c4a6e; }
+/* Blue hour: pastel dusty blue with bright typography */
+body.theme-blue {
+  background-color: #d6e4f0;          /* soft pastel blue */
+  color: #1e3a5f;                     /* deep navy for contrast */
+}
+body.theme-blue header {
+  background-color: rgba(214, 228, 240, 0.92);
+}
+body.theme-blue a { color: #2c5282; }
+body.theme-blue a:hover { color: #1a365d; }
+body.theme-blue .bg-white { background-color: rgba(240, 248, 255, 0.6); }
+body.theme-blue .text-stone-600 { color: #3b5a7c; }
+body.theme-blue .border-stone-200 { border-color: rgba(100, 140, 180, 0.25); }
+#theme-toggle .bh-badge { background: #a8c8e8; color: #1e3a5f; }
 
-/* Tweak default Tailwind-based colors for containers/cards in dark/blue */
-body.theme-dark .bg-white,
-body.theme-blue .bg-white { background-color: rgba(255,255,255,0.06); }
-body.theme-dark .text-stone-600,
-body.theme-blue .text-stone-600 { color: #cbd5e1; }
-body.theme-dark .border-stone-200,
-body.theme-blue .border-stone-200 { border-color: rgba(255,255,255,0.15); }
+/* Tweak default Tailwind-based colors for containers/cards in dark */
+body.theme-dark .bg-white { background-color: rgba(255,255,255,0.06); }
+body.theme-dark .text-stone-600 { color: #cbd5e1; }
+body.theme-dark .border-stone-200 { border-color: rgba(255,255,255,0.15); }
 
 /* Keep nav current section bold restoration (class toggled by JS) */
 header nav a.font-bold { font-weight: 700; }
 
-
-/* Invert logo for dark/golden/blue to maintain contrast */
-body.theme-dark .site-logo,
-body.theme-blue .site-logo { filter: invert(1) hue-rotate(180deg); }
+/* Invert logo for dark theme to maintain contrast */
+body.theme-dark .site-logo { filter: invert(1) hue-rotate(180deg); }
