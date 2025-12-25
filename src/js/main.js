@@ -233,6 +233,7 @@ function initOnce() {
         const target = hash && hash !== '#' ? document.querySelector(hash) : null
         if (target && scroller) {
           e.preventDefault()
+          history.pushState(null, null, hash)
           gsap.to(scroller, {
             duration: 0.6,
             scrollTo: { x: target },
@@ -262,6 +263,11 @@ function initOnce() {
         a.setAttribute('aria-current', active ? 'page' : 'false')
       })
 
+      // Update URL hash without adding to history (scrolling behavior)
+      if (history.replaceState) {
+        history.replaceState(null, null, `#${id}`)
+      }
+
       // Whenever the active section changes (via nav click or swipe),
       // reset vertical scroll so the new section starts from the top.
       resetPageScrollToTop()
@@ -290,9 +296,19 @@ function initOnce() {
     }
 
     // Also update immediately based on hash or default to the first section
+    // And ensure we actually scroll to it if it is a deep link
     const currentHash = (location.hash || '').replace('#', '')
-    if (currentHash) setActive(currentHash)
-    else if (sections[0]) setActive(sections[0].id)
+    if (currentHash) {
+      setActive(currentHash)
+      const target = document.getElementById(currentHash)
+      if (target && scrollerEl && window.gsap) {
+        // Immediate scroll to target for deep linking
+        gsap.set(scrollerEl, { scrollTo: { x: target } })
+        triggerEntranceAllGrids()
+      }
+    } else if (sections[0]) {
+      setActive(sections[0].id)
+    }
 
     // On click, set active instantly for responsiveness
     navLinks.forEach(a => {
