@@ -22,7 +22,7 @@ const VALID_EXTENSIONS = ['.webp', '.jpg', '.jpeg', '.png', '.gif', '.avif']
 // Exclusion list - filenames to exclude (used for film thumbnails, etc.)
 const EXCLUDE_FILES = [
   'moin.webp',
-  'lock.webp', 
+  'lock.webp',
   'bluekite.webp',
   'monsieur.webp'
 ]
@@ -30,7 +30,7 @@ const EXCLUDE_FILES = [
 function generatePhotoManifest() {
   try {
     const files = readdirSync(PHOTOS_DIR)
-    
+
     const photos = files
       .filter(file => {
         const ext = extname(file).toLowerCase()
@@ -39,7 +39,7 @@ function generatePhotoManifest() {
       .map(file => {
         const filePath = join(PHOTOS_DIR, file)
         const stats = statSync(filePath)
-        
+
         // Generate alt text from filename
         const nameWithoutExt = file.replace(/\.[^.]+$/, '')
         const altText = nameWithoutExt
@@ -47,9 +47,9 @@ function generatePhotoManifest() {
           .replace(/([a-z])([A-Z])/g, '$1 $2')
           .replace(/\s+/g, ' ')
           .trim()
-        
+
         return {
-          src: `/public/images/photos/${file}`,
+          src: `/images/photos/${file}`,
           alt: altText,
           filename: file,
           modified: stats.mtime.toISOString()
@@ -57,16 +57,16 @@ function generatePhotoManifest() {
       })
       // Sort by modified date (newest first)
       .sort((a, b) => new Date(b.modified) - new Date(a.modified))
-    
+
     const manifest = {
       generated: new Date().toISOString(),
       count: photos.length,
       photos
     }
-    
+
     writeFileSync(OUTPUT_FILE, JSON.stringify(manifest, null, 2))
     console.log(`✓ Generated ${OUTPUT_FILE} with ${photos.length} photos`)
-    
+
   } catch (error) {
     console.error('Error generating photo manifest:', error)
     process.exit(1)

@@ -1,4 +1,4 @@
-function initOnce () {
+function initOnce() {
   const grids = document.querySelectorAll('#home .grid, #works .grid')
 
   const masonryInstances = []
@@ -14,7 +14,7 @@ function initOnce () {
   const animatedGrids = new WeakSet()
 
   // Single reusable entrance animation for a grid
-  function animateGridEntrance (gridEl) {
+  function animateGridEntrance(gridEl) {
     if (!window.imagesLoaded || !window.gsap) return
     imagesLoaded(gridEl, { background: false }, () => {
       if (animatedGrids.has(gridEl)) return
@@ -62,7 +62,7 @@ function initOnce () {
   }
 
   // Trigger entrance once per grid on demand (unified call)
-  function triggerEntranceAllGrids () {
+  function triggerEntranceAllGrids() {
     Array.from(grids).forEach(animateGridEntrance)
   }
   triggerEntranceAllGrids()
@@ -81,8 +81,8 @@ function initOnce () {
     KEYS: ['light', 'dark', 'golden', 'blue'],
     CLASSES: ['theme-light', 'theme-dark', 'theme-golden', 'theme-blue'],
     geo: null,
-    minutesSinceMidnight (d) { return d.getHours() * 60 + d.getMinutes() },
-    detectHeuristic (now = new Date()) {
+    minutesSinceMidnight(d) { return d.getHours() * 60 + d.getMinutes() },
+    detectHeuristic(now = new Date()) {
       const m = this.minutesSinceMidnight(now)
       const blueMorning = m >= 5 * 60 + 15 && m < 6 * 60
       const goldenMorning = m >= 6 * 60 && m < 7 * 60 + 30
@@ -93,7 +93,7 @@ function initOnce () {
       if (m >= 20 * 60 || m < 6 * 60) return 'dark'
       return 'light'
     },
-    detectPrecise (now = new Date()) {
+    detectPrecise(now = new Date()) {
       try {
         if (!this.geo || !window.SunCalc || typeof SunCalc.getTimes !== 'function')
           return this.detectHeuristic(now)
@@ -112,9 +112,9 @@ function initOnce () {
         return isDay ? 'light' : 'dark'
       } catch (_) { return this.detectHeuristic(now) }
     },
-    detect (now = new Date()) { return this.detectPrecise(now) },
-    current () { for (const k of this.KEYS) if (document.body.classList.contains(`theme-${k}`)) return k; return null },
-    updateToggleUI (theme) {
+    detect(now = new Date()) { return this.detectPrecise(now) },
+    current() { for (const k of this.KEYS) if (document.body.classList.contains(`theme-${k}`)) return k; return null },
+    updateToggleUI(theme) {
       const btn = document.getElementById('theme-toggle')
       if (!btn) return
       const sun = btn.querySelector('.icon-sun')
@@ -130,8 +130,8 @@ function initOnce () {
       btn.setAttribute('title', title)
       btn.setAttribute('aria-label', title)
     },
-    set (theme) {
-      document.body.classList.remove('theme-light','theme-dark','theme-golden','theme-blue')
+    set(theme) {
+      document.body.classList.remove('theme-light', 'theme-dark', 'theme-golden', 'theme-blue')
       document.body.classList.add(`theme-${theme}`)
       this.updateToggleUI(theme)
       const meta = document.querySelector('meta[name="theme-color"]')
@@ -154,13 +154,13 @@ function initOnce () {
 
   // Expose debug controls to window for console access
   window.themeDebug = {
-    enable () { DEBUG_THEME.enabled = true; console.log('Theme debug enabled') },
-    disable () { DEBUG_THEME.enabled = false; userOverride = false; Theme.set(Theme.detect()); console.log('Theme debug disabled, reverted to auto') },
-    setBlue () { DEBUG_THEME.enabled = true; DEBUG_THEME.forceBlue = true; DEBUG_THEME.forceGolden = false; Theme.set('blue'); console.log('Forced: blue') },
-    setGolden () { DEBUG_THEME.enabled = true; DEBUG_THEME.forceGolden = true; DEBUG_THEME.forceBlue = false; Theme.set('golden'); console.log('Forced: golden') },
-    setLight () { DEBUG_THEME.enabled = true; DEBUG_THEME.forceBlue = false; DEBUG_THEME.forceGolden = false; Theme.set('light'); console.log('Forced: light') },
-    setDark () { DEBUG_THEME.enabled = true; DEBUG_THEME.forceBlue = false; DEBUG_THEME.forceGolden = false; Theme.set('dark'); console.log('Forced: dark') },
-    status () { console.log('DEBUG_THEME:', DEBUG_THEME, '| current:', Theme.current()) }
+    enable() { DEBUG_THEME.enabled = true; console.log('Theme debug enabled') },
+    disable() { DEBUG_THEME.enabled = false; userOverride = false; Theme.set(Theme.detect()); console.log('Theme debug disabled, reverted to auto') },
+    setBlue() { DEBUG_THEME.enabled = true; DEBUG_THEME.forceBlue = true; DEBUG_THEME.forceGolden = false; Theme.set('blue'); console.log('Forced: blue') },
+    setGolden() { DEBUG_THEME.enabled = true; DEBUG_THEME.forceGolden = true; DEBUG_THEME.forceBlue = false; Theme.set('golden'); console.log('Forced: golden') },
+    setLight() { DEBUG_THEME.enabled = true; DEBUG_THEME.forceBlue = false; DEBUG_THEME.forceGolden = false; Theme.set('light'); console.log('Forced: light') },
+    setDark() { DEBUG_THEME.enabled = true; DEBUG_THEME.forceBlue = false; DEBUG_THEME.forceGolden = false; Theme.set('dark'); console.log('Forced: dark') },
+    status() { console.log('DEBUG_THEME:', DEBUG_THEME, '| current:', Theme.current()) }
   }
   // ─────────────────────────────────────────────────────────────────────────────
 
@@ -168,7 +168,7 @@ function initOnce () {
   let userOverride = false
 
   // Determine initial theme (respect debug settings)
-  function getEffectiveTheme () {
+  function getEffectiveTheme() {
     if (DEBUG_THEME.enabled) {
       if (DEBUG_THEME.forceBlue) return 'blue'
       if (DEBUG_THEME.forceGolden) return 'golden'
@@ -204,15 +204,15 @@ function initOnce () {
         try {
           Theme.geo = { latitude: pos.coords.latitude, longitude: pos.coords.longitude }
           if (!userOverride) Theme.set(Theme.detect(new Date()))
-        } catch (_) {}
+        } catch (_) { }
       },
-      () => {},
+      () => { },
       { enableHighAccuracy: false, maximumAge: 3600000, timeout: 5000 }
     )
   }
 
   // Helper: when changing sections, always reset vertical scroll to the top
-  function resetPageScrollToTop () {
+  function resetPageScrollToTop() {
     if (typeof window === 'undefined' || typeof window.scrollTo !== 'function') return
     try {
       window.scrollTo({ top: 0, behavior: 'auto' })
@@ -247,13 +247,13 @@ function initOnce () {
   }
 
   // Active nav highlighting (bold + darker text on current section)
-  ;(function () {
+  ; (function () {
     const sections = Array.from(document.querySelectorAll('main section[id]'))
     const navLinks = Array.from(
       document.querySelectorAll('header nav a[href^="#"]')
     )
 
-    function setActive (id) {
+    function setActive(id) {
       navLinks.forEach(a => {
         const active = a.getAttribute('href') === `#${id}`
 
@@ -320,7 +320,7 @@ const TILT = {
 const initializedItems = new WeakSet()
 
 // Apply 3D tilt and click handlers to grid items
-function setupGridItemEffects (container) {
+function setupGridItemEffects(container) {
   if (!container) container = document
   const items = container.querySelectorAll('.grid-item')
 
@@ -399,7 +399,7 @@ function setupGridItemEffects (container) {
 }
 
 // Open image in modal
-function openImageModal (src) {
+function openImageModal(src) {
   const modal = document.getElementById('modal')
   const modalImg = document.getElementById('modal-image')
   if (!modal || !modalImg || !src) return
@@ -417,8 +417,9 @@ function openImageModal (src) {
 }
 
 // Set up modal close handlers (call once)
+// Set up modal close handlers (call once)
 let modalHandlersSet = false
-function setupModalHandlers () {
+function setupModalHandlers() {
   if (modalHandlersSet) return
   modalHandlersSet = true
 
@@ -454,8 +455,11 @@ function setupModalHandlers () {
   }
 }
 
+// Global data shim
+let filmsData = { featured: {}, items: [] }
+
 // Render featured video using vlitejs
-function renderFeatured () {
+function renderFeatured() {
   const container = document.getElementById('featured-video-container')
   if (!container) return
 
@@ -476,7 +480,7 @@ function renderFeatured () {
 }
 
 // Render film cards from JSON
-function renderFilmCards () {
+function renderFilmCards() {
   const grid = document.querySelector('#films .grid-films')
   if (!grid || !Array.isArray(filmsData.items)) return
   grid.innerHTML = filmsData.items
@@ -490,23 +494,20 @@ function renderFilmCards () {
       return `
                         <article class="bg-white rounded-lg overflow-hidden border border-stone-200 shadow-sm">
                             <div class="w-full bg-stone-100 aspect-video">
-                                <img class="w-full h-full object-cover" src="${
-                                  f.thumb
-                                }" alt="${f.title} still">
+                                <img class="w-full h-full object-cover" src="${f.thumb
+        }" alt="${f.title} still">
                             </div>
                             <div class="p-4 space-y-3">
-                                <h3 class="text-lg font-semibold">${
-                                  f.title
-                                }</h3>
-                                <p class="text-stone-600 text-sm">${
-                                  f.description
-                                }</p>
+                                <h3 class="text-lg font-semibold">${f.title
+        }</h3>
+                                <p class="text-stone-600 text-sm">${f.description
+        }</p>
                                 <div class="${bg} border-l-4 ${border} p-3 rounded">
                                     <div class="text-sm font-medium ${title}">Cast</div>
                                     <ul class="text-sm ${text} list-disc ml-4">
                                         ${(f.cast || [])
-                                          .map(c => `<li>${c}</li>`)
-                                          .join('')}
+          .map(c => `<li>${c}</li>`)
+          .join('')}
                                     </ul>
                                 </div>
                             </div>
@@ -516,7 +517,7 @@ function renderFilmCards () {
 }
 
 // Validate and sanitize filmsData loaded from JSON
-function validateFilmsData (data) {
+function validateFilmsData(data) {
   try {
     if (!data || typeof data !== 'object') return null
     const out = { featured: { src: '', youtube: '', poster: '' }, items: [] }
@@ -544,9 +545,9 @@ function validateFilmsData (data) {
 }
 
 // Try to fetch films data from external JSON
-async function initFilms () {
+async function initFilms() {
   try {
-    const res = await fetch('/public/data/films.json', { cache: 'no-store' })
+    const res = await fetch('/data/films.json', { cache: 'no-store' })
     if (res.ok) {
       const json = await res.json()
       const validated = validateFilmsData(json)
@@ -576,9 +577,9 @@ if (document.readyState === 'loading') {
 // Photos dynamic rendering
 let photosData = { photos: [] }
 
-async function loadPhotos () {
+async function loadPhotos() {
   try {
-    const res = await fetch('/public/data/photos.json', { cache: 'no-store' })
+    const res = await fetch('/data/photos.json', { cache: 'no-store' })
     if (!res.ok) throw new Error('Failed to load photos')
     const json = await res.json()
     photosData = json
@@ -589,7 +590,7 @@ async function loadPhotos () {
   }
 }
 
-function renderPhotos () {
+function renderPhotos() {
   const grid = document.getElementById('photos-grid')
   if (!grid || !Array.isArray(photosData.photos)) return
 
@@ -604,7 +605,7 @@ function renderPhotos () {
     .join('')
 }
 
-async function initPhotos () {
+async function initPhotos() {
   await loadPhotos()
   renderPhotos()
   // Re-initialize Masonry after photos are loaded
@@ -629,7 +630,7 @@ async function initPhotos () {
 }
 
 // Auto-refresh photos every 15 minutes
-function startPhotosAutoRefresh () {
+function startPhotosAutoRefresh() {
   setInterval(async () => {
     const oldCount = photosData.photos?.length || 0
     await loadPhotos()
@@ -670,9 +671,9 @@ if (document.readyState === 'loading') {
 }
 
 // Works dynamic rendering
-async function initWorks () {
+async function initWorks() {
   try {
-    const res = await fetch('/public/data/works.json', { cache: 'no-store' })
+    const res = await fetch('/data/works.json', { cache: 'no-store' })
     if (!res.ok) throw new Error('Failed to load works')
     const json = await res.json()
     const grid = document.querySelector('#works .grid')
@@ -683,19 +684,16 @@ async function initWorks () {
         w => `
                     <article class="grid-item p-2">
                       <div class="rounded-lg overflow-hidden aspect-square">
-                        <img loading="lazy" decoding="async" class="w-full h-full object-cover" src="${
-                          w.thumb
-                        }" alt="${w.title || 'Work'}">
+                        <img loading="lazy" decoding="async" class="w-full h-full object-cover" src="${w.thumb
+          }" alt="${w.title || 'Work'}">
                       </div>
                       <div class="mt-3">
-                        <p class="text-stone-600 text-sm">${
-                          w.description || ''
-                        }</p>
-                        ${
-                          w.link
-                            ? `<a href="${w.link}" class="text-stone-900 hover:underline text-sm font-medium mt-2 inline-block">View work →</a>`
-                            : ''
-                        }
+                        <p class="text-stone-600 text-sm">${w.description || ''
+          }</p>
+                        ${w.link
+            ? `<a href="${w.link}" class="text-stone-900 hover:underline text-sm font-medium mt-2 inline-block">View work →</a>`
+            : ''
+          }
                       </div>
                     </article>
                   `
